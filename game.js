@@ -37,7 +37,7 @@ function create() {
     const scene = this;
     scene.add.image(750, 550, 'fountain').setScale(0.5);
 
-    coin = scene.matter.add.image(coinStart.x, coinStart.y, 'coin').setScale(0.05);
+    coin = scene.matter.add.image(coinStart.x, coinStart.y, 'coin').setScale(0.15);
     coin.setCircle((coin.displayWidth / 2) * 0.9);
     coin.setBounce(0.5);
     coin.setFriction(0.005);
@@ -58,7 +58,7 @@ function create() {
     midWater.setAlpha(0.5);
     bottomWater.setAlpha(0.5);
 
-    scene.add.text(950, 20, '[ Reset ]', { fontSize: '20px', fill: '#00FFFF' })
+    scene.add.text(950, 20, '[ Click Here to Reset ]', { fontSize: '20px', fill: '#00FFFF' })
         .setOrigin(1, 0)
         .setInteractive()
         .on('pointerdown', () => resetCoin(true));
