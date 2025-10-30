@@ -3,12 +3,14 @@ const coinStart = { x: 200, y: 600 };
 let coin, dragLine, isDragging = false, dragStart;
 let score = 0;
 let scoreText, messageText;
+let coinHasScored = false;
 
 const tierBounds = [
-    { x: 750, y: 650, width: 340, height: 70, score: 1 },
-    { x: 750, y: 460, width: 170, height: 45, score: 3 },
-    { x: 750, y: 300, width: 110, height: 30, score: 5 }
+    { x: 750, y: 550, width: 340, height: 70, score: 1 },
+    { x: 750, y: 550, width: 170, height: 45, score: 3 },
+    { x: 750, y: 550, width: 110, height: 30, score: 5 }
 ];
+
 
 const config = {
     type: Phaser.AUTO,
@@ -37,7 +39,7 @@ function create() {
     const scene = this;
     scene.add.image(750, 550, 'fountain').setScale(0.5);
 
-    coin = scene.matter.add.image(coinStart.x, coinStart.y, 'coin').setScale(0.15);
+    coin = scene.matter.add.image(coinStart.x, coinStart.y, 'coin').setScale(0.1);
     coin.setCircle((coin.displayWidth / 2) * 0.9);
     coin.setBounce(0.5);
     coin.setFriction(0.005);
@@ -46,26 +48,62 @@ function create() {
     coin.body.ignoreWorldBounds = true;
 
 
-    const topWater = scene.add.image(750, 550, 'topWater').setScale(0.5);
-    const midWater = scene.add.image(750, 550, 'midWater').setScale(0.5);
-    const bottomWater = scene.add.image(750, 550, 'bottomWater').setScale(0.5);
+    // const topWater = scene.add.image(750, 550, 'topWater').setScale(0.5);
+    // const midWater = scene.add.image(750, 550, 'midWater').setScale(0.5);
+    // const bottomWater = scene.add.image(750, 550, 'bottomWater').setScale(0.5);
 
-    topWater.alpha = 1;
-    midWater.alpha = 1;
-    bottomWater.alpha = 1;
+    // topWater.alpha = 1;
+    // midWater.alpha = 1;
+    // bottomWater.alpha = 1;
 
-    topWater.setAlpha(0.5);
-    midWater.setAlpha(0.5);
-    bottomWater.setAlpha(0.5);
+    // topWater.setAlpha(0.5);
+    // midWater.setAlpha(0.5);
+    // bottomWater.setAlpha(0.5);
 
-    scene.add.text(950, 20, '[ Click Here to Reset ]', { fontSize: '20px', fill: '#00FFFF' })
+    const waterSprites = [
+        { key: 'bottomWater', x: tierBounds[0].x, y: tierBounds[0].y, score: tierBounds[0].score, alpha: 1 },
+        { key: 'midWater', x: tierBounds[1].x, y: tierBounds[1].y, score: tierBounds[1].score, alpha: 1 },
+        { key: 'topWater', x: tierBounds[2].x, y: tierBounds[2].y, score: tierBounds[2].score, alpha: 1 }
+    ];
+
+    waterSprites.forEach(w => {
+        const sprite = scene.matter.add.sprite(w.x, w.y, w.key, null, { 
+            isStatic: true, 
+            isSensor: true
+        });
+        sprite.setScale(0.5);
+        sprite.score = w.score;
+        sprite.setAlpha(0.5);
+    });
+
+    scene.matter.world.on('collisionstart', event => {
+        if (coinHasScored) return; 
+        event.pairs.forEach(pair => {
+            const bodies = [pair.bodyA, pair.bodyB];
+            if (bodies.includes(coin.body)) {
+                bodies.forEach(b => {
+                    if (b.gameObject && b.gameObject.score) {
+                        const tierScore = b.gameObject.score;
+                        score += tierScore;
+                        coinHasScored = true;
+                        scoreText.setText('Fortune Gained: ' + score);
+                        messageText.setText('Score! Wish received').setColor("#00FF0D");
+                        showScorePopup(scene, tierScore, coin.x, coin.y);
+                        resetCoin();
+                    }
+                });
+            }
+        });
+    });
+
+    scene.add.text(990, 20, '[Click Here to Reset]', { fontSize: '30px', fill: '#00FFFF' })
         .setOrigin(1, 0)
         .setInteractive()
         .on('pointerdown', () => resetCoin(true));
 
     dragLine = scene.add.graphics();
-    scoreText = scene.add.text(20, 20, 'Fortune Gained: 0', { fontSize: '28px', fill: '#222' });
-    messageText = scene.add.text(20, 60, 'Click & drag to throw', { fontSize: '24px', fill: '#ff0000' });
+    scoreText = scene.add.text(20, 20, 'Fortune Gained: 0', { fontSize: '38px', fill: '#000000' });
+    messageText = scene.add.text(20, 80, 'Click & drag to throw', { fontSize: '38px', fill: '#FFD903' });
 
     scene.input.on('pointerdown', pointer => {
         const dist = Phaser.Math.Distance.Between(pointer.x, pointer.y, coin.x, coin.y);
@@ -96,24 +134,6 @@ function create() {
         coin.setVelocity(pullVec.x * LAUNCH_MULT, pullVec.y * LAUNCH_MULT);
         coin.setAngularVelocity(0.2);
     });
-
-    scene.matter.world.on('afterUpdate', () => {
-        if (!coin || coin.isStatic()) return;
-        const cx = coin.x, cy = coin.y, r = (coin.displayWidth / 2) * 0.9;
-
-        for (let tier of tierBounds) {
-            if (overlapsCircleRect(cx, cy, r, tier)) {
-                score += tier.score;
-                scoreText.setText('Score: ' + score);
-                messageText.setText('Score! Wish received');
-                coin.setVisible(false);
-                showScorePopup(scene, tier.score, cx, cy);
-                resetCoin();
-                coin.setVisible(true);
-                break;
-            }
-        }
-    });
 }
 
 function update() {
@@ -124,7 +144,9 @@ function update() {
 
     if (cx + r < 0 || cx - r > SCREEN_WIDTH || cy - r > SCREEN_HEIGHT) {
         resetCoin();
-        messageText.setText('Miss :(');
+        messageText.setText('Miss :(').setColor("#BD0202");
+        score -= 10;
+        scoreText.setText('Fortune Gained: ' + score);
     }
 }
 
@@ -148,15 +170,18 @@ function resetCoin(resetMessage = false) {
     coin.setPosition(coinStart.x, coinStart.y);
     isDragging = false;
     dragLine.clear();
+    coinHasScored = false;
+
     if (resetMessage) {
-        messageText.setText('Click & drag to throw');
-        scoreText.setText('Score: 0');
+        messageText.setText('Click & drag to throw').setColor("#FFd903");
+        scoreText.setText('Fortune Gained: 0').setColor("#000000");
         score = 0;
     }
 }
 
+
 function showScorePopup(scene, value, x, y) {
-    const popup = scene.add.text(x, y - 30, `+${value}`, { fontSize: '24px', fill: '#ff0000', fontStyle: 'bold' }).setOrigin(0.5);
+    const popup = scene.add.text(x, y - 30, `+${value}`, { fontSize: '24px', fill: '#00FF0D', fontStyle: 'bold' }).setOrigin(0.5);
     scene.tweens.add({
         targets: popup,
         y: y - 60,
