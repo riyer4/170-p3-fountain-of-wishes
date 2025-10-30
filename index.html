@@ -1,144 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fountain Coin Toss</title>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.js"></script>
-  <style>
-    body {
-      margin: 0;
-      background: #2c2f33;
-      color: white;
-      font-family: sans-serif;
-      overflow: hidden;
-    }
-    #game-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fountain Coin Toss</title>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.js"></script>
+<style>
+    /* Styling for the page */
+    body { margin: 0; font-family: Arial, sans-serif; background: #ffffff; }
+</style>
 </head>
 <body>
-  <div id="game-container"></div>
+<div id="game-container"></div>
 
-  <script>
-    const config = {
-      type: Phaser.AUTO,
-      width: 1200,
-      height: 800,
-      backgroundColor: "#1e1e1e",
-      parent: "game-container",
-      physics: {
-        default: "matter",
-        matter: {
-          gravity: { y: 0.01 },
-          debug: false
-        }
-      },
-      scene: { preload, create, update }
-    };
-
-    let coin, isDragging = false, dragStart, dragLine, throwText, resetButton;
-    const LAUNCH_MULT = 0.02;
-
-    const game = new Phaser.Game(config);
-
-    function preload() {
-      this.load.image("coin", "wish.png");
-      this.load.image("fountain", "fountain.png");
-    }
-
-    function create() {
-      const scene = this;
-
-      // === Fountain (visual + physics base) ===
-      scene.add.image(900, 400, "fountain").setScale(0.5);
-      const fountainBody = scene.matter.add.rectangle(500, 380, 300, 80, { 
-        isStatic: true,
-        restitution: 0.6
-      });
-
-      // === Coin setup (static at first, above fountain) ===
-      coin = scene.matter.add.image(200, 500, "coin").setScale(0.05);
-      coin.setCircle((coin.displayWidth / 2) * 0.9);
-      coin.setBounce(0.6);
-      coin.setFriction(0.02);
-      coin.setStatic(true); // start frozen in air
-
-      // === UI elements ===
-      dragLine = scene.add.graphics();
-      throwText = scene.add.text(20, 20, "Click & drag to throw the coin", { fontSize: "20px", fill: "#FFD700" });
-      resetButton = scene.add.text(850, 20, "[ Reset ]", { fontSize: "20px", fill: "#00FFFF" })
-        .setInteractive()
-        .on("pointerdown", () => resetCoin(scene));
-
-      // === Input handling ===
-      scene.input.on("pointerdown", pointer => {
-        const dist = Phaser.Math.Distance.Between(pointer.x, pointer.y, coin.x, coin.y);
-        if (dist < 60) {
-          isDragging = true;
-          dragStart = new Phaser.Math.Vector2(pointer.x, pointer.y);
-        }
-      });
-
-      scene.input.on("pointermove", pointer => {
-        if (isDragging) {
-          dragLine.clear();
-          dragLine.lineStyle(3, 0xffffff, 0.5);
-          dragLine.strokeLineShape(new Phaser.Geom.Line(dragStart.x, dragStart.y, pointer.x, pointer.y));
-        }
-      });
-
-      scene.input.on("pointerup", pointer => {
-        if (isDragging) {
-            isDragging = false;
-            dragLine.clear();
-
-            const dragEnd = new Phaser.Math.Vector2(pointer.x, pointer.y);
-            const dragVector = dragStart.clone().subtract(dragEnd);
-
-            // Make the coin launch in an arc
-            const impulseX = dragVector.x * 0.05; // horizontal speed
-            const impulseY = dragVector.y * 0.08; // vertical speed stronger than horizontal
-
-            coin.setStatic(false);
-            coin.setVelocity(impulseX, -impulseY); // invert Y so upward drag goes up
-            coin.setAngularVelocity(0.3);
-            throwText.setText("Launched!");
-        }
-    });
-
-
-
-
-      // When coin slows down, freeze it to stop endless sliding
-      scene.matter.world.on("afterUpdate", () => {
-        // if (!isDragging && !coin.isStatic()) {
-        //   const speed = Math.hypot(coin.body.velocity.x, coin.body.velocity.y);
-        //   if (speed < 0.1 && coin.y < 800) {
-        //     coin.setVelocity(0, 0);
-        //     coin.setAngularVelocity(0);
-        //     coin.setStatic(true);
-        //   }
-        // }
-      });
-    }
-
-    function update() {
-      // Reset if off screen
-      if (coin.y > 900) resetCoin(this);
-    }
-
-    function resetCoin(scene) {
-      coin.setStatic(true);
-      coin.setPosition(200, 500);
-      coin.setVelocity(0, 0);
-      coin.setAngularVelocity(0);
-      throwText.setText("Click & drag to throw the coin");
-    }
-  </script>
+<script src="game.js"></script>
 </body>
 </html>
+
+
