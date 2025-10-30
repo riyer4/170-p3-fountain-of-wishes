@@ -27,14 +27,14 @@
   <script>
     const config = {
       type: Phaser.AUTO,
-      width: 1000,
+      width: 1200,
       height: 800,
       backgroundColor: "#1e1e1e",
       parent: "game-container",
       physics: {
         default: "matter",
         matter: {
-          gravity: { y: 1 },
+          gravity: { y: 0.01 },
           debug: false
         }
       },
@@ -55,14 +55,14 @@
       const scene = this;
 
       // === Fountain (visual + physics base) ===
-      scene.add.image(500, 300, "fountain").setScale(0.5);
+      scene.add.image(900, 400, "fountain").setScale(0.5);
       const fountainBody = scene.matter.add.rectangle(500, 380, 300, 80, { 
         isStatic: true,
         restitution: 0.6
       });
 
       // === Coin setup (static at first, above fountain) ===
-      coin = scene.matter.add.image(500, 600, "coin").setScale(0.05);
+      coin = scene.matter.add.image(200, 500, "coin").setScale(0.05);
       coin.setCircle((coin.displayWidth / 2) * 0.9);
       coin.setBounce(0.6);
       coin.setFriction(0.02);
@@ -100,27 +100,30 @@
             const dragEnd = new Phaser.Math.Vector2(pointer.x, pointer.y);
             const dragVector = dragStart.clone().subtract(dragEnd);
 
-            // Flip Y so dragging up launches up
-            const impulse = new Phaser.Math.Vector2(dragVector.x * LAUNCH_MULT, -dragVector.y * LAUNCH_MULT);
+            // Make the coin launch in an arc
+            const impulseX = dragVector.x * 0.05; // horizontal speed
+            const impulseY = dragVector.y * 0.08; // vertical speed stronger than horizontal
 
             coin.setStatic(false);
-            coin.setVelocity(impulse.x, impulse.y);
-            coin.setAngularVelocity(0.2); // spin a bit
-            throwText.setText("Nice throw!");
+            coin.setVelocity(impulseX, -impulseY); // invert Y so upward drag goes up
+            coin.setAngularVelocity(0.3);
+            throwText.setText("Launched!");
         }
-});
+    });
+
+
 
 
       // When coin slows down, freeze it to stop endless sliding
       scene.matter.world.on("afterUpdate", () => {
-        if (!isDragging && !coin.isStatic()) {
-          const speed = Math.hypot(coin.body.velocity.x, coin.body.velocity.y);
-          if (speed < 0.1 && coin.y < 800) {
-            coin.setVelocity(0, 0);
-            coin.setAngularVelocity(0);
-            coin.setStatic(true);
-          }
-        }
+        // if (!isDragging && !coin.isStatic()) {
+        //   const speed = Math.hypot(coin.body.velocity.x, coin.body.velocity.y);
+        //   if (speed < 0.1 && coin.y < 800) {
+        //     coin.setVelocity(0, 0);
+        //     coin.setAngularVelocity(0);
+        //     coin.setStatic(true);
+        //   }
+        // }
       });
     }
 
@@ -131,7 +134,7 @@
 
     function resetCoin(scene) {
       coin.setStatic(true);
-      coin.setPosition(500, 600);
+      coin.setPosition(200, 500);
       coin.setVelocity(0, 0);
       coin.setAngularVelocity(0);
       throwText.setText("Click & drag to throw the coin");
