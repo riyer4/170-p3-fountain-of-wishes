@@ -28,6 +28,9 @@ const game = new Phaser.Game(config);
 function preload() {
     this.load.image('coin', 'wish.png');
     this.load.image('fountain', 'fountain.png');
+    this.load.image('topWater', "topWater.png");
+    this.load.image("midWater", "midWater.png");
+    this.load.image("bottomWater", "bottomWater.png");
 }
 
 function create() {
@@ -42,13 +45,26 @@ function create() {
     coin.setSleepThreshold(Infinity);
     coin.body.ignoreWorldBounds = true;
 
+
+    const topWater = scene.add.image(750, 550, 'topWater').setScale(0.5);
+    const midWater = scene.add.image(750, 550, 'midWater').setScale(0.5);
+    const bottomWater = scene.add.image(750, 550, 'bottomWater').setScale(0.5);
+
+    topWater.alpha = 1;
+    midWater.alpha = 1;
+    bottomWater.alpha = 1;
+
+    topWater.setAlpha(0.5);
+    midWater.setAlpha(0.5);
+    bottomWater.setAlpha(0.5);
+
     scene.add.text(950, 20, '[ Reset ]', { fontSize: '20px', fill: '#00FFFF' })
         .setOrigin(1, 0)
         .setInteractive()
         .on('pointerdown', () => resetCoin(true));
 
     dragLine = scene.add.graphics();
-    scoreText = scene.add.text(20, 20, 'Score: 0', { fontSize: '28px', fill: '#222' });
+    scoreText = scene.add.text(20, 20, 'Fortune Gained: 0', { fontSize: '28px', fill: '#222' });
     messageText = scene.add.text(20, 60, 'Click & drag to throw', { fontSize: '24px', fill: '#ff0000' });
 
     scene.input.on('pointerdown', pointer => {
