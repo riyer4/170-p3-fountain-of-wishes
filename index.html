@@ -4,17 +4,21 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Fountain Coin Toss</title>
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.js"></script>
 <style>
-    /* Styling for the page */
     body { margin: 0; font-family: Arial, sans-serif; background: #ffffff; }
+    #game-container { width: 1000px; height: 800px; margin: 0 auto; }
 </style>
 </head>
 <body>
 <div id="game-container"></div>
 
-<script src="game.js"></script>
+<!-- Phaser library -->
+<script src="./lib/phaser.js"></script>
+
+<!-- Game entry point as a module -->
+<script type="module" src="./src/main.js"></script>
 </body>
 </html>
+
 
 
