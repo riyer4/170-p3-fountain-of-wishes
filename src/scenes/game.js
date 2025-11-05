@@ -16,7 +16,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.add.image(750, 550, 'fountain').setScale(0.5);
+        this.add.image(950, 550, 'fountain').setScale(0.5);
 
         this.coin = new Coin(this, 200, 600, 'coin');
 
@@ -29,10 +29,14 @@ export default class GameScene extends Phaser.Scene {
 
         // Create tiers
         this.tiers = [
-            new Tier(this, 750, 700, 340, 80, 1),
-            new Tier(this, 750, 515, 170, 45, 3),
-            new Tier(this, 750, 355, 110, 30, 5)
+            new Tier(this, 950, 690, 280, 50, 1),
+            new Tier(this, 950, 515, 150, 25, 3),
+            new Tier(this, 950, 355, 90, 10, 5)
         ];
+
+        this.topTier = this.add.image(950, 550, "topWater").setScale(0.5).setAlpha(0.5);
+        this.midTier = this.add.image(950, 550, "midWater").setScale(0.5).setAlpha(0.5);
+        this.bottomTier = this.add.image(950, 550, "bottomWater").setScale(0.5).setAlpha(0.5);
 
         this.input.on('pointerdown', pointer => {
             const dist = Phaser.Math.Distance.Between(pointer.x, pointer.y, this.coin.x, this.coin.y);
@@ -82,7 +86,7 @@ export default class GameScene extends Phaser.Scene {
             });
         });
 
-        this.add.text(990, 20, '[Click Here to Reset]', { fontSize: '30px', fill: '#00FFFF' })
+        this.add.text(1180, 20, '[Click Here to Reset]', { fontSize: '30px', fill: '#00FFFF' })
             .setOrigin(1, 0)
             .setInteractive()
             .on('pointerdown', () => this.resetGame());
