@@ -168,7 +168,7 @@ export default class GameScene extends Phaser.Scene {
             this.scene.start('loseScene');
         }
 
-        else if (this.fortuneValue >= this.fortuneValue.max) {
+        else if (this.fortuneValue >= 1) {
             this.scene.start('winScene');
         }
 
