@@ -32,7 +32,7 @@ export default class Coin extends Phaser.Physics.Matter.Image {
     }
 
     applyWind(windVector) {
-        const forceScale = 0.0005; 
+        const forceScale = 0.00025; 
         this.applyForce({ x: windVector.x * forceScale, y: windVector.y * forceScale });
     }
 }

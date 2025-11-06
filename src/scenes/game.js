@@ -26,12 +26,12 @@ export default class GameScene extends Phaser.Scene {
 
         this.coin = new Coin(this, 200, 600, 'coin');
 
-        this.fortuneBarBG = this.add.rectangle(200, 40, 300, 30, 0xAAAAAA).setOrigin(0, 0.5);
-        this.fortuneBar = this.add.rectangle(200, 40, 300 * 0.25, 30, 0xFFD903).setOrigin(0, 0.5);
-        this.fortuneLabel = this.add.text(50, 40, 'Fortune: ', { fontSize: '28px', fill: '#000', fontStyle: 'bold' }).setOrigin(0, 0.5);
+        this.fortuneBarBG = this.add.rectangle(170, 40, 300, 30, 0xAAAAAA).setOrigin(0, 0.5);
+        this.fortuneBar = this.add.rectangle(170, 40, 300 * 0.25, 30, 0xFFD903).setOrigin(0, 0.5);
+        this.fortuneLabel = this.add.text(20, 40, 'Fortune: ', { fontSize: '28px', fill: '#000', fontStyle: 'bold' }).setOrigin(0, 0.5);
         this.fortuneValue = 0.25;
 
-        this.messageText = this.add.text(20, 60, 'Click & drag to throw', { fontSize: '28px', fill: '#FFD903', fontStyle: 'bold' });
+        this.messageText = this.add.text(20, 80, 'Click & drag to throw', { fontSize: '38px', fill: '#FFD903', fontStyle: 'bold' });
 
         this.dragLine = this.add.graphics();
         this.isDragging = false;
@@ -128,7 +128,7 @@ export default class GameScene extends Phaser.Scene {
                     if (wish && wish.destroy) wish.destroy();
                     this.sound.play('lose', { volume: 0.2, rate: 1.5 });
                     this.coin.reset();
-                    this.messageText.setText('Blocked!').setColor("#BD0202");
+                    this.messageText.setText('Blocked by another wish!').setColor("#BD0202");
                     return;
                 }
 
@@ -161,6 +161,15 @@ export default class GameScene extends Phaser.Scene {
             this.coin.reset();
             this.sound.play('lose', { volume: 0.2, rate: 1.5 });
             this.messageText.setText('Miss :(').setColor("#BD0202");
+        }
+
+        if (this.fortuneValue <= 0) {
+
+            this.scene.start('loseScene');
+        }
+
+        else if (this.fortuneValue >= this.fortuneValue.max) {
+            this.scene.start('winScene');
         }
 
         this.windArrow.setRotation(this.windForce.angle());

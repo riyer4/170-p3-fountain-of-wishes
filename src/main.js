@@ -1,4 +1,7 @@
 import GameScene from './scenes/game.js';
+import LoseScene from './scenes/lose.js';
+import WinScene from './scenes/win.js';
+import MenuScene from './scenes/menu.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -10,7 +13,9 @@ const config = {
         default: 'matter',
         matter: { gravity: { y: 0.7 }, debug: false }
     },
-    scene: [GameScene]
+    scene: [WinScene, GameScene, LoseScene, MenuScene]
 };
 
 new Phaser.Game(config);
+
+
