@@ -1,5 +1,6 @@
 import Coin from '../prefabs/coin.js';
 import Tier from '../prefabs/tier.js';
+import Wishes from '../prefabs/wishes.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -48,13 +49,13 @@ export default class GameScene extends Phaser.Scene {
 
         this.windArrow = this.add.image(80, 700, 'arrow').setOrigin(0.5).setScale(0.25);
         this.windText = this.add.text(50, 750, '0 mph', { fontSize: '24px', fill: '#000', fontStyle: 'bold' });
-        this.stageText = this.add.text(600, 60, '20', { fontSize: '32px', fill: '#000', fontStyle: 'bold' });
+        this.stageText = this.add.text(600, 60, '15', { fontSize: '32px', fill: '#000', fontStyle: 'bold' });
         this.timerText = this.add.text(585, 15, 'Timer', { fontSize: '24px', fill: '#000', fontStyle: 'bold' });
         this.timerBox = this.add.graphics();
         this.timerBox.lineStyle(4, 0x000000);
         this.timerBox.strokeRect(580, 45, 80, 60);
 
-        this.stageDuration = 20000;
+        this.stageDuration = 15000;
         this.stageNumber = 1;
         this.windForce = new Phaser.Math.Vector2(0, 0);
 
@@ -64,6 +65,8 @@ export default class GameScene extends Phaser.Scene {
             callbackScope: this,
             loop: true
         });
+
+        this.wishes = new Wishes(this);
 
         this.input.on('pointerdown', pointer => {
             const dist = Phaser.Math.Distance.Between(pointer.x, pointer.y, this.coin.x, this.coin.y);
@@ -94,39 +97,59 @@ export default class GameScene extends Phaser.Scene {
         });
 
         this.matter.world.on('collisionstart', event => {
-            if (this.coin.hasScored) return;
             event.pairs.forEach(pair => {
-                const bodies = [pair.bodyA, pair.bodyB];
-                bodies.forEach(b => {
-                    if (b.gameObject && b.gameObject.score) {
-                        const tierScore = b.gameObject.score;
+                const goA = pair.bodyA.gameObject || null;
+                const goB = pair.bodyB.gameObject || null;
+                if (!goA && !goB) return;
+
+                const tier = (goA && goA.score) ? goA : (goB && goB.score ? goB : null);
+                const other = tier === goA ? goB : goA;
+                if (tier) {
+                    this.sound.play('splash', { volume: 0.7, rate: 1.5 });
+                    if (other === this.coin && !this.coin.hasScored) {
+                        const tierScore = tier.score;
                         this.sound.play('ding', { volume: 0.2, rate: 1.5 });
-                        this.sound.play('splash', { volume: 0.7, rate: 1.5 });
                         this.coin.hasScored = true;
                         this.messageText.setText('Score! Wish received').setColor("#00FF0D");
                         this.showScorePopup(tierScore, this.coin.x, this.coin.y);
                         this.coin.reset();
-
                         const incrementMap = {1: 1/32, 3: 3/32, 5: 5/32};
                         this.fortuneValue += incrementMap[tierScore] || 0;
                         if (this.fortuneValue > 1) this.fortuneValue = 1;
                         this.updateFortuneBar();
+                    } else if (other && other.isWish) {
+                        other.destroy();
                     }
-                });
+                    return;
+                }
+
+                if ((goA === this.coin && goB && goB.isWish) || (goB === this.coin && goA && goA.isWish)) {
+                    const wish = goA === this.coin ? goB : goA;
+                    if (wish && wish.destroy) wish.destroy();
+                    this.sound.play('lose', { volume: 0.2, rate: 1.5 });
+                    this.coin.reset();
+                    this.messageText.setText('Blocked!').setColor("#BD0202");
+                    return;
+                }
+
             });
         });
+
 
         this.add.text(1180, 20, '[Click Here to Reset]', { fontSize: '30px', fill: '#00FFFF', fontStyle: "bold" })
             .setOrigin(1, 0)
             .setInteractive()
             .on('pointerdown', () => this.resetGame());
-
     }
 
-    update(time, delta) {
+    update() {
         if (!this.coin || this.coin.hasScored) return;
 
-        this.coin.applyWind(this.windForce);
+        let adjustedWind = this.windForce.clone();
+        if ((adjustedWind.x < 0 || adjustedWind.y > 0) && adjustedWind.length() > 5) {
+            adjustedWind.setLength(5);
+        }
+        this.coin.applyWind(adjustedWind);
 
         const cx = this.coin.x;
         const cy = this.coin.y;
@@ -143,6 +166,8 @@ export default class GameScene extends Phaser.Scene {
         this.windArrow.setRotation(this.windForce.angle());
         this.windText.setText(Math.round(this.windForce.length()) + ' mph');
         this.stageText.setText(Math.ceil(this.stageTimer.getRemaining() / 1000));
+
+        this.wishes.update();
     }
 
     nextStage() {
@@ -180,4 +205,5 @@ export default class GameScene extends Phaser.Scene {
         this.fortuneBar.width = 300 * this.fortuneValue;
     }
 }
+
 
